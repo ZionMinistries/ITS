@@ -1,0 +1,722 @@
+```react
+import React, { useState, useEffect } from 'react';
+
+// Injecting premium fonts and custom animation styles
+const styleInject = () => {
+  if (document.getElementById('its-custom-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'its-custom-styles';
+  style.innerHTML = `
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Outfit:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary-blue: #0A192F;
+      --accent-gold: #D4AF37;
+      --bg-cream: #FAFAFA;
+    }
+    
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-cream);
+      color: #333;
+      scroll-behavior: smooth;
+    }
+    
+    .font-serif {
+      font-family: 'Lora', serif;
+    }
+    
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .animate-fade-up {
+      animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    
+    .delay-100 { animation-delay: 100ms; }
+    .delay-200 { animation-delay: 200ms; }
+    .delay-300 { animation-delay: 300ms; }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .text-gradient {
+      background: linear-gradient(135deg, #0A192F 0%, #1f4068 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .gold-gradient {
+      background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 100%);
+    }
+
+    /* Custom Scrollbar for elegance */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+  `;
+  document.head.appendChild(style);
+};
+
+export default function App() {
+  useEffect(() => {
+    styleInject();
+  }, []);
+
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
+
+  // Form & Wizard State
+  const [activeTab, setActiveTab] = useState('All');
+  const [regStep, setRegStep] = useState(1);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [refId, setRefId] = useState('');
+  
+  const [form, setForm] = useState({
+    courseType: 'B.B.S', studyType: 'Internal', fullName: '', sex: 'Male', dob: '', age: '', aadhaar: '',
+    email: '', fatherName: '', address: '', pinCode: '', phoneFather: '', phoneApplicant: '',
+    highestExam: '', passingYear: '', marksGrade: '', prevInstitution: '', secularPreferred: 'B.C.A.',
+    isChristian: 'Yes', denomination: '', churchName: '', pastorName: '', prevTheology: '', agreeToRules: false
+  });
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    setMobileMenu(false);
+  };
+
+  const programs = [
+    { code: 'B.Cert', title: 'Bible Certificate Programme', level: 'Undergrad', years: '3 Years', desc: 'Foundational scripture analysis for practical ministry. Offered in regional Indian languages.', secular: false },
+    { code: 'A.B.S', title: 'Associate of Biblical Studies', level: 'Undergrad', years: '2 Years', desc: 'Dual-track enabling theological study concurrently with PUC (Class 11 & 12) via Crossland College.', secular: true },
+    { code: 'B.B.S', title: 'Bachelor of Biblical Studies', level: 'Graduate', years: '3 Years', desc: 'Integrated double-degree track. Combine robust scriptural study with B.A., B.Com., or B.C.A.', secular: true },
+    { code: 'B.B.S Hons.', title: 'B.B.S. (Honours)', level: 'Graduate', years: '4 Years', desc: 'Advanced, specialized program for academic research and high-level structural theology.', secular: false },
+    { code: 'M.B.S', title: 'Master of Biblical Studies', level: 'Postgrad', years: '2-3 Years', desc: 'Postgraduate analysis of Christian theology, hermeneutics, and pastoral counseling.', secular: false },
+    { code: 'D.B.S', title: 'Doctor of Biblical Studies', level: 'Doctoral', years: '2-3 Years', desc: 'Highest academic track for scholars and institutional leaders. Requires original research.', secular: false }
+  ];
+
+  const filteredPrograms = activeTab === 'All' ? programs : 
+                           activeTab === 'Secular Dual-Degree' ? programs.filter(p => p.secular) :
+                           programs.filter(p => p.level.includes(activeTab));
+
+  const handleDemoFill = () => {
+    setForm({
+      courseType: 'B.B.S', studyType: 'Internal', fullName: 'Sarah Elizabeth Thomas', sex: 'Female', dob: '2005-08-22', age: '20', aadhaar: '8922-1456-7731',
+      email: 'sarah.thomas@example.com', fatherName: 'Mr. John Thomas', address: '45, Grace Villa, Mission Compound, Udupi', pinCode: '576101', phoneFather: '+91 9845012345', phoneApplicant: '+91 9481447173',
+      highestExam: 'Pre-University (PUC)', passingYear: '2023', marksGrade: '92%', prevInstitution: 'MGM College, Udupi', secularPreferred: 'B.Com.',
+      isChristian: 'Yes', denomination: 'CSI', churchName: 'CSI Christ Church', pastorName: 'Rev. Samuel K.', prevTheology: 'None', agreeToRules: true
+    });
+  };
+
+  const submitForm = (e) => {
+    e.preventDefault();
+    if (!form.agreeToRules) return alert("Please agree to the campus discipline code.");
+    setRefId(`ITS-${form.courseType.replace('.','')}-${Math.floor(Math.random() * 90000) + 10000}`);
+    setIsSubmitted(true);
+  };
+
+  return (
+    <div className="min-h-screen text-slate-800 selection:bg-[#D4AF37] selection:text-white">
+      
+      {/* Navigation */}
+      <nav className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'glass-nav py-3 shadow-sm' : 'bg-transparent py-5'}`}>
+        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+          
+          <div className="flex items-center gap-4 cursor-pointer" onClick={() => scrollTo('home')}>
+            {/* Elegant SVG Logo */}
+            <div className="w-12 h-12 bg-[#0A192F] rounded-full flex items-center justify-center p-1 shadow-lg">
+              <svg viewBox="0 0 100 100" className="w-full h-full text-[#F3E5AB]">
+                <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M30 48 C35 45, 45 45, 50 50 C55 45, 65 45, 70 48 L70 65 C65 62, 55 62, 50 67 C45 62, 35 62, 30 65 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                <path d="M 50,45 L 50,67" stroke="currentColor" strokeWidth="2"/>
+                <path d="M42 36 L45 41 L50 38 L55 41 L58 36 L54 39 L50 36 L46 39 Z" fill="currentColor"/>
+                <text x="50" y="58" fontSize="12" fontWeight="bold" fontFamily="sans-serif" fill="currentColor" textAnchor="middle">its</text>
+              </svg>
+            </div>
+            <div>
+              <h1 className="font-serif font-bold text-xl leading-tight text-[#0A192F]">India Theological Seminary</h1>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Brahmavara • Est. 1984</p>
+            </div>
+          </div>
+
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <button onClick={() => scrollTo('heritage')} className="hover:text-[#D4AF37] transition">Heritage</button>
+            <button onClick={() => scrollTo('academics')} className="hover:text-[#D4AF37] transition">Academics</button>
+            <button onClick={() => scrollTo('secular')} className="hover:text-[#D4AF37] transition">Secular Study</button>
+            <button onClick={() => scrollTo('campus')} className="hover:text-[#D4AF37] transition">Campus</button>
+            <button onClick={() => scrollTo('admissions')} className="bg-[#0A192F] text-white px-6 py-2.5 rounded-full hover:bg-[#1a2d4c] transition shadow-lg shadow-blue-900/20">Apply Now</button>
+          </div>
+
+          {/* Mobile Toggle */}
+          <button className="lg:hidden text-[#0A192F]" onClick={() => setMobileMenu(!mobileMenu)}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={mobileMenu ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}/></svg>
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenu && (
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-xl border-t p-6 flex flex-col gap-4 text-center">
+            <button onClick={() => scrollTo('heritage')} className="text-slate-600 py-2">Heritage</button>
+            <button onClick={() => scrollTo('academics')} className="text-slate-600 py-2">Academics</button>
+            <button onClick={() => scrollTo('admissions')} className="bg-[#0A192F] text-white px-6 py-3 rounded-full mt-2">Pre-Register Now</button>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero Section - Airy, Elegant, Modern */}
+      <section id="home" className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden px-6">
+        {/* Beautiful background elements */}
+        <div className="absolute top-0 right-0 -z-10 w-[800px] h-[800px] bg-blue-50/50 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3"></div>
+        <div className="absolute bottom-0 left-0 -z-10 w-[600px] h-[600px] bg-amber-50/60 rounded-full blur-3xl -translate-x-1/4 translate-y-1/4"></div>
+
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse"></span>
+              Admissions Open for 2026
+            </div>
+            <h2 className="font-serif text-5xl lg:text-7xl font-bold leading-[1.1] text-[#0A192F]">
+              Bible Education <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#b08d2b]">Along With</span><br/>
+              Secular Study.
+            </h2>
+            <p className="text-lg text-slate-600 max-w-lg leading-relaxed">
+              Equipping dynamic Christian leaders through dual-degree tracks. Gain an accredited University qualification alongside deep, robust theological training in a serene 30-acre ecosystem.
+            </p>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <button onClick={() => scrollTo('admissions')} className="bg-[#0A192F] text-white px-8 py-4 rounded-full font-medium hover:shadow-xl hover:shadow-blue-900/20 transition transform hover:-translate-y-0.5">
+                Start Pre-Registration
+              </button>
+              <button onClick={() => scrollTo('academics')} className="bg-white text-[#0A192F] border border-slate-200 px-8 py-4 rounded-full font-medium hover:border-slate-300 transition hover:bg-slate-50">
+                Explore Curriculum
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-8 pt-8 border-t border-slate-200/60">
+              <div>
+                <p className="font-serif text-3xl font-bold text-[#0A192F]">1984</p>
+                <p className="text-xs uppercase tracking-wider text-slate-500 mt-1">Established</p>
+              </div>
+              <div>
+                <p className="font-serif text-3xl font-bold text-[#0A192F]">30<span className="text-lg text-[#D4AF37]">Acres</span></p>
+                <p className="text-xs uppercase tracking-wider text-slate-500 mt-1">Campus</p>
+              </div>
+              <div>
+                <p className="font-serif text-3xl font-bold text-[#0A192F]">B++</p>
+                <p className="text-xs uppercase tracking-wider text-slate-500 mt-1">NAAC Partner</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Showcase Card */}
+          <div className="relative lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl animate-fade-up delay-200 group">
+             {/* We use CSS gradients to create a beautiful abstract architectural placeholder since we avoid AI image gen */}
+             <div className="absolute inset-0 bg-gradient-to-br from-[#0A192F] via-[#1a2d4c] to-[#0A192F]"></div>
+             
+             {/* Abstract Geometric Overlay */}
+             <svg className="absolute inset-0 w-full h-full opacity-20 group-hover:scale-105 transition duration-700" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <polygon points="0,100 100,0 100,100" fill="#D4AF37" opacity="0.3"/>
+                <polygon points="0,0 100,100 0,100" fill="#ffffff" opacity="0.1"/>
+             </svg>
+             
+             <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12 text-white bg-gradient-to-t from-[#0A192F] to-transparent">
+                <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20">
+                  <svg className="w-8 h-8 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"/></svg>
+                </div>
+                <h3 className="font-serif text-3xl mb-3 font-semibold">Priority Highlands</h3>
+                <p className="text-white/80 font-light leading-relaxed">
+                  "The ITS is surely a different kind of Seminary with unique features. Anyone joining the ITS will be blessed by the Lord."
+                </p>
+                <div className="mt-4 pt-4 border-t border-white/20">
+                  <p className="text-xs uppercase tracking-widest text-[#D4AF37] font-semibold">— Late Dr. C.T. Abraham, Founder</p>
+                </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Philosophy & Heritage */}
+      <section id="heritage" className="py-24 bg-white relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase mb-4 block">Purpose & Doctrine</span>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-[#0A192F]">A Foundation Built on Truth</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-slate-50 p-10 rounded-3xl border border-slate-100 transition hover:shadow-lg hover:border-slate-200">
+              <div className="w-12 h-12 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center mb-6 font-serif text-xl font-bold">01</div>
+              <h3 className="font-serif text-2xl font-bold text-[#0A192F] mb-4">Classroom & Life Integration</h3>
+              <p className="text-slate-600 leading-relaxed font-light">
+                To train men and women based on a strong biblical position in the classroom and in their own learning laboratories of ministry and daily life.
+              </p>
+            </div>
+            
+            <div className="bg-amber-50/50 p-10 rounded-3xl border border-amber-100 transition hover:shadow-lg hover:border-amber-200">
+              <div className="w-12 h-12 bg-amber-200 text-amber-900 rounded-full flex items-center justify-center mb-6 font-serif text-xl font-bold">02</div>
+              <h3 className="font-serif text-2xl font-bold text-[#0A192F] mb-4">Unique Secular Opportunity</h3>
+              <p className="text-slate-600 leading-relaxed font-light">
+                To provide an unmatched opportunity for concurrent secular education (Arts, Commerce, Computer Applications) along with deep study of the Bible.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Curriculum / Academics */}
+      <section id="academics" className="py-24 bg-slate-50 border-y border-slate-200/50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+            <div className="max-w-2xl">
+              <span className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase mb-4 block">Academic Matrix</span>
+              <h2 className="font-serif text-4xl lg:text-5xl font-bold text-[#0A192F]">Programs of Study</h2>
+            </div>
+            
+            {/* Elegant Pill Filters */}
+            <div className="flex flex-wrap gap-2">
+              {['All', 'Undergrad', 'Graduate', 'Postgrad', 'Doctoral', 'Secular Dual-Degree'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === tab ? 'bg-[#0A192F] text-white shadow-md' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPrograms.map((prog, idx) => (
+              <div key={idx} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">{prog.level}</span>
+                  {prog.secular && <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-1 rounded font-bold tracking-wide">DUAL TRACK</span>}
+                </div>
+                
+                <h3 className="font-serif text-2xl font-bold text-[#0A192F] mb-2">{prog.title}</h3>
+                <p className="text-[#D4AF37] font-medium text-sm mb-4">{prog.code} • {prog.years}</p>
+                
+                <p className="text-slate-600 text-sm leading-relaxed mb-8 flex-grow font-light">
+                  {prog.desc}
+                </p>
+                
+                <button onClick={() => { setForm(prev => ({...prev, courseType: prog.code})); scrollTo('admissions'); }} className="w-full text-center py-3 rounded-xl border border-slate-200 text-[#0A192F] font-medium hover:bg-[#0A192F] hover:text-white transition">
+                  Apply for {prog.code}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Secular Study / Crossland College Section (Stunning Dark Section) */}
+      <section id="secular" className="py-24 bg-[#0A192F] text-white relative overflow-hidden">
+        {/* Subtle geometric lines */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#D4AF37 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+        
+        <div className="max-w-7xl mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <span className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase block">The Crossland Connection</span>
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold leading-tight">Complete an Accredited University Degree.</h2>
+            <p className="text-slate-300 leading-relaxed font-light text-lg">
+              Through our strategic partnership with <strong>Crossland College</strong> (Reaccredited by NAAC with B++), ITS students can simultaneously pursue recognized secular university degrees on the same 30-acre campus.
+            </p>
+            
+            <div className="grid sm:grid-cols-2 gap-6 pt-6">
+              <div className="glass-card rounded-2xl p-6 border-white/10">
+                <h4 className="font-bold text-[#D4AF37] mb-2">B.C.A.</h4>
+                <p className="text-sm text-slate-300 font-light">Bachelor of Computer Applications. All required papers & electives.</p>
+              </div>
+              <div className="glass-card rounded-2xl p-6 border-white/10">
+                <h4 className="font-bold text-[#D4AF37] mb-2">B.Com. & B.A.</h4>
+                <p className="text-sm text-slate-300 font-light">Commerce, Business Management, Secretarial Practice, History & Rural Dev.</p>
+              </div>
+            </div>
+            
+            <div className="inline-flex items-center gap-3 text-sm text-slate-400 bg-white/5 px-4 py-3 rounded-lg border border-white/10">
+              <span className="text-2xl">🏆</span> Ranked 78th Best Arts College in India by 'India Today'. Over 36 University Ranks in 38 years.
+            </div>
+          </div>
+          
+          <div className="relative">
+             {/* Beautiful layered card graphic representing dual education */}
+             <div className="relative z-10 bg-[#112240] p-8 sm:p-12 rounded-3xl border border-[#233554] shadow-2xl">
+                <h3 className="font-serif text-2xl font-semibold mb-6 pb-4 border-b border-[#233554]">Why Secular Integration?</h3>
+                <ul className="space-y-6">
+                  <li className="flex gap-4">
+                    <div className="w-8 h-8 rounded-full bg-blue-900/50 text-blue-300 flex items-center justify-center shrink-0">1</div>
+                    <p className="text-slate-300 text-sm font-light leading-relaxed">Ministry in India requires excellent leadership capable of engaging with modern society intellectually.</p>
+                  </li>
+                  <li className="flex gap-4">
+                    <div className="w-8 h-8 rounded-full bg-amber-900/30 text-amber-400 flex items-center justify-center shrink-0">2</div>
+                    <p className="text-slate-300 text-sm font-light leading-relaxed">Secures government-recognized standing for graduates, aiding in visas, employment, and social integration.</p>
+                  </li>
+                  <li className="flex gap-4">
+                    <div className="w-8 h-8 rounded-full bg-emerald-900/30 text-emerald-400 flex items-center justify-center shrink-0">3</div>
+                    <p className="text-slate-300 text-sm font-light leading-relaxed">Saves vital years by concurrent studying instead of sequential degree pursuit.</p>
+                  </li>
+                </ul>
+             </div>
+             
+             {/* Decorative offset card */}
+             <div className="absolute top-8 left-8 w-full h-full border-2 border-[#D4AF37]/30 rounded-3xl -z-10"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Campus Ecosystem */}
+      <section id="campus" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="font-serif text-4xl lg:text-5xl font-bold text-[#0A192F]">Priority Highlands Ecosystem</h2>
+            <p className="text-slate-600 mt-4 text-lg font-light">A tranquil 30-acre campus in Chanthar, Brahmavar, housing a complete educational community.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-8 rounded-3xl bg-slate-50 text-center hover:bg-slate-100 transition duration-300">
+               <div className="w-16 h-16 mx-auto bg-white shadow-sm rounded-full flex items-center justify-center text-2xl mb-6">⛪</div>
+               <h3 className="font-serif text-xl font-bold mb-3 text-[#0A192F]">Brahmavar Baptist Church</h3>
+               <p className="text-slate-500 text-sm font-light">Practical church life and liturgy integration for our students right on campus.</p>
+            </div>
+            <div className="p-8 rounded-3xl bg-slate-50 text-center hover:bg-slate-100 transition duration-300">
+               <div className="w-16 h-16 mx-auto bg-white shadow-sm rounded-full flex items-center justify-center text-2xl mb-6">🏫</div>
+               <h3 className="font-serif text-xl font-bold mb-3 text-[#0A192F]">Little Rock Indian School</h3>
+               <p className="text-slate-500 text-sm font-light">A prestigious sister institution fostering a rich environment of secondary education.</p>
+            </div>
+            <div className="p-8 rounded-3xl bg-slate-50 text-center hover:bg-slate-100 transition duration-300">
+               <div className="w-16 h-16 mx-auto bg-white shadow-sm rounded-full flex items-center justify-center text-2xl mb-6">🎓</div>
+               <h3 className="font-serif text-xl font-bold mb-3 text-[#0A192F]">Crossland College</h3>
+               <p className="text-slate-500 text-sm font-light">Providing direct access to modern library materials, labs, and secular exams.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Beautiful Registration Wizard */}
+      <section id="admissions" className="py-24 bg-slate-100 relative">
+        <div className="max-w-4xl mx-auto px-6 relative z-10">
+          
+          <div className="text-center mb-12">
+            <span className="text-[#D4AF37] text-sm font-bold tracking-widest uppercase block mb-4">Admissions Gateway</span>
+            <h2 className="font-serif text-4xl font-bold text-[#0A192F]">Pre-Registration Portal</h2>
+            <p className="text-slate-500 mt-4 mb-6 font-light">Submit this form with Rs.100/- to receive the complete Prospectus and Financial Information package.</p>
+            {!isSubmitted && (
+               <button onClick={handleDemoFill} className="text-xs font-semibold uppercase tracking-wider bg-white border border-slate-200 px-4 py-2 rounded-full text-slate-500 hover:text-[#0A192F] hover:shadow-sm transition">
+                 ✨ Auto-fill demo data
+               </button>
+            )}
+          </div>
+
+          {isSubmitted ? (
+            <div className="bg-white p-10 md:p-16 rounded-3xl shadow-2xl border-t-8 border-[#D4AF37] animate-fade-up">
+              <div className="flex flex-col md:flex-row justify-between items-center border-b border-slate-100 pb-8 mb-8">
+                <div>
+                  <h3 className="font-serif text-2xl font-bold text-[#0A192F]">Registration Successful</h3>
+                  <p className="text-slate-500 font-light mt-1">Your data sheet has been recorded.</p>
+                </div>
+                <div className="mt-4 md:mt-0 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-200 text-center">
+                  <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block mb-1">Reference No</span>
+                  <span className="font-mono text-lg font-bold text-[#0A192F]">{refId}</span>
+                </div>
+              </div>
+              
+              <div className="bg-emerald-50 text-emerald-800 p-6 rounded-2xl text-sm leading-relaxed mb-8 border border-emerald-100">
+                Please save this reference number. Our office will contact you via <strong>{form.email}</strong> or <strong>{form.phoneApplicant}</strong>. Ensure you have the Rs. 100/- processing fee ready upon final application submission.
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-y-6 gap-x-12 text-sm">
+                 <div><span className="text-slate-400 block text-xs uppercase mb-1">Applicant Name</span><strong className="text-[#0A192F]">{form.fullName}</strong></div>
+                 <div><span className="text-slate-400 block text-xs uppercase mb-1">Course Selected</span><strong className="text-[#0A192F]">{form.courseType} ({form.studyType})</strong></div>
+                 <div><span className="text-slate-400 block text-xs uppercase mb-1">Date of Birth</span><strong className="text-[#0A192F]">{form.dob}</strong></div>
+                 <div><span className="text-slate-400 block text-xs uppercase mb-1">Highest Exam Passed</span><strong className="text-[#0A192F]">{form.highestExam} ({form.passingYear})</strong></div>
+                 <div className="sm:col-span-2"><span className="text-slate-400 block text-xs uppercase mb-1">Permanent Address</span><strong className="text-[#0A192F]">{form.address}, {form.pinCode}</strong></div>
+              </div>
+
+              <div className="mt-12 flex flex-wrap gap-4 justify-center">
+                <button onClick={() => window.print()} className="bg-[#0A192F] text-white px-8 py-3 rounded-full font-medium hover:bg-slate-800 transition shadow-lg">Print Voucher</button>
+                <button onClick={() => setIsSubmitted(false)} className="bg-white border border-slate-200 text-slate-700 px-8 py-3 rounded-full font-medium hover:bg-slate-50 transition">Start New Application</button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={submitForm} className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+              
+              {/* Progress Steps */}
+              <div className="flex bg-slate-50 border-b border-slate-100 p-2">
+                {[1, 2, 3].map(step => (
+                  <button 
+                    key={step} type="button" onClick={() => setRegStep(step)}
+                    className={`flex-1 py-3 text-sm font-medium rounded-2xl transition ${regStep === step ? 'bg-white shadow-sm text-[#0A192F]' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    Step {step}
+                  </button>
+                ))}
+              </div>
+
+              <div className="p-8 md:p-12">
+                {regStep === 1 && (
+                  <div className="space-y-6 animate-fade-up">
+                    <h3 className="font-serif text-2xl font-bold text-[#0A192F] mb-6 border-b border-slate-100 pb-4">Academic Selection</h3>
+                    
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Target Course *</label>
+                        <select required value={form.courseType} onChange={e => setForm({...form, courseType: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition">
+                          {programs.map(p => <option key={p.code} value={p.code}>{p.code} - {p.title}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Mode of Study *</label>
+                        <select required value={form.studyType} onChange={e => setForm({...form, studyType: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition">
+                          <option value="Internal">Internal (On-Campus)</option>
+                          <option value="External">External (Correspondence)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {form.courseType === 'B.B.S' && (
+                      <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-amber-900 mb-3">Preferred Secular Degree (Crossland) *</label>
+                        <div className="flex flex-wrap gap-4">
+                          {['B.C.A.', 'B.A.', 'B.Com.'].map(opt => (
+                            <label key={opt} className="flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-amber-200">
+                              <input type="radio" name="secular" value={opt} checked={form.secularPreferred === opt} onChange={e => setForm({...form, secularPreferred: e.target.value})} className="accent-[#D4AF37]" />
+                              <span className="text-sm font-medium">{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <h3 className="font-serif text-xl font-bold text-[#0A192F] mt-8 mb-4 border-b border-slate-100 pb-2">Personal Identity</h3>
+                    
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Full Name *</label>
+                        <input type="text" required value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} placeholder="As per official records" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] outline-none transition"/>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="col-span-2 md:col-span-1">
+                           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Sex</label>
+                           <select value={form.sex} onChange={e => setForm({...form, sex: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none transition"><option>Male</option><option>Female</option></select>
+                        </div>
+                        <div className="col-span-2 md:col-span-2">
+                           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Date of Birth *</label>
+                           <input type="date" required value={form.dob} onChange={e => setForm({...form, dob: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none transition"/>
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                           <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Age</label>
+                           <input type="number" value={form.age} onChange={e => setForm({...form, age: e.target.value})} placeholder="20" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none transition"/>
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Aadhaar No</label>
+                          <input type="text" value={form.aadhaar} onChange={e => setForm({...form, aadhaar: e.target.value})} placeholder="0000 0000 0000" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none transition"/>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email *</label>
+                          <input type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@example.com" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none transition"/>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-end pt-6">
+                      <button type="button" onClick={() => setRegStep(2)} className="bg-[#0A192F] text-white px-8 py-4 rounded-xl font-medium hover:bg-slate-800 transition">Continue to Contact Details →</button>
+                    </div>
+                  </div>
+                )}
+
+                {regStep === 2 && (
+                  <div className="space-y-6 animate-fade-up">
+                    <h3 className="font-serif text-2xl font-bold text-[#0A192F] mb-6 border-b border-slate-100 pb-4">Contact & Education</h3>
+                    
+                    <div className="grid md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Father's Name *</label>
+                          <input type="text" required value={form.fatherName} onChange={e => setForm({...form, fatherName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Father's Phone</label>
+                          <input type="tel" value={form.phoneFather} onChange={e => setForm({...form, phoneFather: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div className="md:col-span-2">
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Full Address *</label>
+                          <textarea required value={form.address} onChange={e => setForm({...form, address: e.target.value})} rows="2" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none resize-none"></textarea>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">PIN Code *</label>
+                          <input type="text" required value={form.pinCode} onChange={e => setForm({...form, pinCode: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Applicant's Phone *</label>
+                          <input type="tel" required value={form.phoneApplicant} onChange={e => setForm({...form, phoneApplicant: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                    </div>
+
+                    <h3 className="font-serif text-xl font-bold text-[#0A192F] mt-8 mb-4 border-b border-slate-100 pb-2">Academic History</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Highest Exam Passed *</label>
+                          <input type="text" required value={form.highestExam} onChange={e => setForm({...form, highestExam: e.target.value})} placeholder="PUC / Class 12" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                         <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Year *</label>
+                            <input type="text" required value={form.passingYear} onChange={e => setForm({...form, passingYear: e.target.value})} placeholder="2024" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                         </div>
+                         <div>
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Marks % *</label>
+                            <input type="text" required value={form.marksGrade} onChange={e => setForm({...form, marksGrade: e.target.value})} placeholder="85%" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                         </div>
+                       </div>
+                       <div className="md:col-span-2">
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Name & Place of Last Institution Studied *</label>
+                          <input type="text" required value={form.prevInstitution} onChange={e => setForm({...form, prevInstitution: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                    </div>
+
+                    <div className="flex justify-between pt-6">
+                      <button type="button" onClick={() => setRegStep(1)} className="text-slate-500 hover:text-[#0A192F] font-medium px-4">← Back</button>
+                      <button type="button" onClick={() => setRegStep(3)} className="bg-[#0A192F] text-white px-8 py-4 rounded-xl font-medium hover:bg-slate-800 transition">Final Step: Church Data →</button>
+                    </div>
+                  </div>
+                )}
+
+                {regStep === 3 && (
+                  <div className="space-y-6 animate-fade-up">
+                    <h3 className="font-serif text-2xl font-bold text-[#0A192F] mb-6 border-b border-slate-100 pb-4">Church Background</h3>
+                    
+                    <div className="grid md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Are you a Christian? *</label>
+                          <select value={form.isChristian} onChange={e => setForm({...form, isChristian: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none">
+                             <option>Yes</option><option>No</option>
+                          </select>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Denomination *</label>
+                          <input type="text" required value={form.denomination} onChange={e => setForm({...form, denomination: e.target.value})} placeholder="Baptist, CSI, etc." className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Name of Church & Place *</label>
+                          <input type="text" required value={form.churchName} onChange={e => setForm({...form, churchName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Name of Pastor/Priest</label>
+                          <input type="text" value={form.pastorName} onChange={e => setForm({...form, pastorName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                       <div className="md:col-span-2">
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Theological Studies, if any (Give details)</label>
+                          <input type="text" value={form.prevTheology} onChange={e => setForm({...form, prevTheology: e.target.value})} placeholder="None" className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm focus:border-[#D4AF37] outline-none"/>
+                       </div>
+                    </div>
+
+                    <div className="mt-8 bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                       <h4 className="font-bold text-[#0A192F] mb-2 flex items-center gap-2">
+                          <svg className="w-5 h-5 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                          Discipline Code
+                       </h4>
+                       <p className="text-sm text-slate-600 mb-4 font-light">ITS insists on strict discipline and Christian testimony. Hence only those who have genuine interest in the study of the Bible and can submit to rules, authority fully, and follow dress/appearance codes need apply.</p>
+                       <label className="flex items-start gap-3 cursor-pointer">
+                          <input type="checkbox" required checked={form.agreeToRules} onChange={e => setForm({...form, agreeToRules: e.target.checked})} className="mt-1 w-4 h-4 accent-[#0A192F]" />
+                          <span className="text-sm font-medium text-[#0A192F]">I agree to submit to the rules, authority, and dress code of the institution.</span>
+                       </label>
+                    </div>
+
+                    <div className="flex justify-between pt-6 border-t border-slate-100">
+                      <button type="button" onClick={() => setRegStep(2)} className="text-slate-500 hover:text-[#0A192F] font-medium px-4">← Back</button>
+                      <button type="submit" className="bg-[#D4AF37] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#b08d2b] transition shadow-lg hover:-translate-y-0.5">Submit Application Securely</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </form>
+          )}
+
+        </div>
+      </section>
+
+      {/* Elegant Footer */}
+      <footer className="bg-[#0A192F] text-white pt-24 pb-12 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 border-b border-white/10 pb-16 mb-12">
+             <div className="lg:col-span-2 space-y-6">
+               <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1">
+                   <svg viewBox="0 0 100 100" className="w-full h-full text-[#0A192F]">
+                     <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="2" />
+                     <path d="M30 48 C35 45, 45 45, 50 50 C55 45, 65 45, 70 48 L70 65 C65 62, 55 62, 50 67 C45 62, 35 62, 30 65 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                     <path d="M 50,45 L 50,67" stroke="currentColor" strokeWidth="2"/>
+                     <text x="50" y="58" fontSize="12" fontWeight="bold" fontFamily="sans-serif" fill="currentColor" textAnchor="middle">its</text>
+                   </svg>
+                 </div>
+                 <div>
+                   <h2 className="font-serif text-xl font-bold">India Theological Seminary</h2>
+                   <p className="text-[10px] uppercase tracking-widest text-slate-400">Est. 1984</p>
+                 </div>
+               </div>
+               <p className="text-slate-400 font-light max-w-sm leading-relaxed text-sm">
+                 A different kind of Seminary with unique features, empowering young men and women seeking the truth to serve in India and beyond.
+               </p>
+             </div>
+             
+             <div>
+               <h4 className="font-bold mb-6 text-lg">Contact Us</h4>
+               <ul className="space-y-4 text-slate-400 font-light text-sm">
+                 <li className="flex gap-3"><span className="text-[#D4AF37]">📍</span> Priority Highlands, Brahmavar,<br/>Udupi District, Karnataka - 576213</li>
+                 <li className="flex gap-3"><span className="text-[#D4AF37]">📞</span> Office: (0820) 2561316</li>
+                 <li className="flex gap-3"><span className="text-[#D4AF37]">📱</span> Admin: +91 9481447173</li>
+                 <li className="flex gap-3"><span className="text-[#D4AF37]">👤</span> Mr. Babu K.P.: 9481447174</li>
+               </ul>
+             </div>
+             
+             <div>
+               <h4 className="font-bold mb-6 text-lg">Important Notes</h4>
+               <ul className="space-y-3 text-slate-400 font-light text-sm">
+                 <li>• Financial info in Prospectus</li>
+                 <li>• Scholarships available for needy</li>
+                 <li>• Campus work opportunities available</li>
+                 <li>• Baptist doctrine framework</li>
+               </ul>
+             </div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 font-light">
+             <p>© {new Date().getFullYear()} India Theological Seminary. All rights reserved.</p>
+             <div className="flex gap-4 mt-4 md:mt-0">
+                <span>Designed for Brahmavara</span>
+                <span>Affiliated with Crossland College</span>
+             </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+
+```
